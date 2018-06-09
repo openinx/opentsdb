@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Remove any leading colon.
+me=`basename "$0"`
+WORK_DIR=`dirname $0`
+WORK_DIR=`realpath $WORK_DIR`
+CLASSPATH="$WORK_DIR/lib:$WORK_DIR/lib/*"
+
+usage() {
+  echo >&2 "usage: $me <command> [args]"
+  echo 'Valid commands: fsck, import, mkmetric, query, tsd, scan, search, uid, version'
+  exit 1
+}
+
+case $1 in
+  (fsck)
+    MAINCLASS=Fsck
+    ;;
+  (import)
+    MAINCLASS=TextImporter
+    ;;
+  (mkmetric)
+    shift
+    set uid assign metrics "$@"
+    MAINCLASS=UidManager
+    ;;
+  (query)
+    MAINCLASS=CliQuery
+    ;;
+  (tsd)
+    MAINCLASS=TSDMain
+    ;;
+  (scan)
+    MAINCLASS=DumpSeries
+    ;;
+  (search)
+    MAINCLASS=Search
+    ;;
+  (uid)
+    MAINCLASS=UidManager
+    ;;
+  (version)
+    MAINCLASS=BuildData
+    ;;
+  (*)
+    echo >&2 "$me: error: unknown command '$1'"
+    usage
+    ;;
+esac
+shift
+
+JAVA=${JAVA-'java'}
+JVMARGS=${JVMARGS-'-enableassertions -enablesystemassertions'}
+
+exec $JAVA $JVMARGS -classpath "$CLASSPATH" net.opentsdb.tools.$MAINCLASS "$@"
